@@ -1,0 +1,95 @@
+---
+  AWSTemplateFormatVersion: "2010-09-09"
+  Parameters:
+    NotificationEmail:
+      Type: String
+      Description: "E-mail address to be subscribed to SNS topic"
+  Resources:
+    sgcheckSNSTopic:
+      Type: "AWS::SNS::Topic"
+      Properties:
+        TopicName: "sg-check"
+        DisplayName: "Security Group Checker Topic"
+
+    sgcheckFirstSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        Endpoint: !Ref NotificationEmail
+        Protocol: "email"
+        TopicArn: !Ref sgcheckSNSTopic
+
+    sgcheckRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            -
+              Effect: "Allow"
+              Principal:
+                Service:
+                  - "lambda.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Path: "/"
+        Policies:
+          -
+            PolicyName: "root"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                -
+                  Effect: "Allow"
+                  Action:
+                    - "sns:Publish"
+                  Resource: !Ref sgcheckSNSTopic
+    sgcheckFunction:
+      Type: "AWS::Lambda::Function"
+      Properties:
+        Handler: "sgcheck.lambda_handler"
+        Role: !GetAtt sgcheckRole.Arn
+        Code:
+          S3Bucket: "aws-lambda-helpers"
+          S3Key: "sgcheck.zip"
+        Runtime: "python2.7"
+        Timeout: "25"
+        MemorySize: "128"
+        Environment:
+          Variables:
+            SNS_ARN: !Ref sgcheckSNSTopic
+            ENVIRONMENT: "LAMBDA"
+
+    sgcheckEventRule:
+      Type: "AWS::Events::Rule"
+      Properties:
+        Description: "Cloud Watch event rule to trigger lambda function"
+        EventPattern:
+          detail-type:
+            - "AWS API Call via CloudTrail"
+          detail:
+            eventSource:
+              - "ec2.amazonaws.com"
+            eventName:
+              - "AuthorizeSecurityGroupEgress"
+              - "AuthorizeSecurityGroupIngress"
+        State: "ENABLED"
+        Targets:
+          -
+            Arn: !GetAtt sgcheckFunction.Arn
+            Id: "scheckLambdaFunction"
+
+    sgcheckLambdaInvokePermission:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        FunctionName: !Ref sgcheckFunction
+        Action: "lambda:InvokeFunction"
+        Principal: "events.amazonaws.com"
+        SourceArn: !GetAtt sgcheckEventRule.Arn
+
+  Outputs:
+    LambdaArn:
+      Value: !GetAtt sgcheckFunction.Arn
+    LambdaFunctionName:
+      Value: !Ref sgcheckFunction
+    EventRuleArn:
+      Value: !GetAtt sgcheckEventRule.Arn
