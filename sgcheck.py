@@ -3,7 +3,6 @@ from __future__ import print_function
 import json
 import boto3
 import os
-import psutil
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT')
 SNS_ARN = os.environ.get('SNS_ARN')
@@ -52,9 +51,9 @@ def lambda_handler(event, context):
         print(item['ipProtocol'])
         print(item['ipRanges']['items'])
         affected_ports = []
-        if item['ipProtocol'] == '-1' and json.dumps(item['ipRanges']['items']).find('0.0.0.0/0'):
+        if item['ipProtocol'] == '-1' and json.dumps(item['ipRanges']['items']).find('0.0.0.0/0') > 0:
             message += template.format('Critical', account, region, event_time, 'All ports open to the world !')
-        if item['ipProtocol'] == 'tcp' and json.dumps(item['ipRanges']['items']).find('0.0.0.0/0'):
+        if item['ipProtocol'] == 'tcp' and json.dumps(item['ipRanges']['items']).find('0.0.0.0/0') > 0:
             for port in RISKY_PORTS:
                 if from_port <= port <= to_port:
                     affected_ports.append(port)
@@ -85,4 +84,3 @@ if ENVIRONMENT == "IDE":
     with open('dummy_event.json') as event_file:
         event = json.load(event_file)
     lambda_handler(event, 'no context')
-    print(psutil.Process(os.getpid()).memory_info_ex().peak_wset)

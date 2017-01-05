@@ -1,0 +1,61 @@
+{
+   "account": "222222222222",
+   "detail": {
+       "awsRegion": "us-east-1",
+       "eventID": "11111111-22222-3333-4444-5555555555555",
+       "eventName": "AuthorizeSecurityGroupIngress",
+       "eventSource": "ec2.amazonaws.com",
+       "eventTime": "2016-01-01T10:10:10Z",
+       "eventType": "AwsApiCall",
+       "eventVersion": "1.05",
+       "requestID": "11111111-22222-3333-4444-5555555555555",
+       "requestParameters": {
+           "groupId": "sg-123456789",
+           "ipPermissions": {
+               "items": [
+                   {
+                       "fromPort": 20,
+                       "groups": {},
+                       "ipProtocol": "-1",
+                       "ipRanges": {
+                           "items": [
+                               {
+                                   "cidrIp": "0.0.0.1/0"
+                               }
+                           ]
+                       },
+                       "ipv6Ranges": {},
+                       "prefixListIds": {},
+                       "toPort": 22
+                   }
+               ]
+           }
+       },
+       "responseElements": {
+           "_return": true
+       },
+       "sourceIPAddress": "192.168.1.1",
+       "userAgent": "console.ec2.amazonaws.com",
+       "userIdentity": {
+           "accessKeyId": "ASIAAAAAAAAAAAAAAAAA",
+           "accountId": "222222222222",
+           "arn": "arn:aws:iam::222222222222:root",
+           "principalId": "222222222222",
+           "sessionContext": {
+               "attributes": {
+                   "creationDate": "2016-01-01T10:10:10Z",
+                   "mfaAuthenticated": "false"
+               }
+           },
+           "type": "Root",
+           "userName": "myuser"
+       }
+   },
+   "detail-type": "AWS API Call via CloudTrail",
+   "id": "11111111-22222-3333-4444-5555555555555",
+   "region": "us-east-1",
+   "resources": [],
+   "source": "aws.ec2",
+   "time": "2016-01-01T10:10:10Z",
+   "version": "0"
+}
